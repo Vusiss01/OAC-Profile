@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "./layout/Sidebar";
 import StatisticsCards from "./dashboard/StatisticsCards";
 import ParticipantManagement from "./participants/ParticipantManagement";
@@ -9,13 +9,20 @@ import PaymentTracking from "./payments/PaymentTracking";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bell, Calendar, Download, Settings, Menu } from "lucide-react";
+import { Bell, Calendar, Settings, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Home = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const renderContent = () => {
+    // Only render dashboard content if we're at the root path
+    if (location.pathname !== "/") {
+      return <Outlet />;
+    }
+
     switch (activeTab) {
       case "dashboard":
         return (
@@ -23,13 +30,25 @@ const Home = () => {
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => navigate("/notifications")}
+                >
                   <Bell className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="icon">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => navigate("/calendar")}
+                >
                   <Calendar className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="icon">
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => navigate("/settings")}
+                >
                   <Settings className="h-4 w-4" />
                 </Button>
               </div>
@@ -113,12 +132,12 @@ const Home = () => {
       case "payments":
         return <PaymentTracking />;
       default:
-        return <div>Select a tab</div>;
+        return null;
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100 dark:bg-slate-900">
       <Sheet>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50">
@@ -130,19 +149,22 @@ const Home = () => {
         </SheetContent>
       </Sheet>
       <div className="flex-1 overflow-auto p-6 pl-16">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-            <TabsTrigger value="participants">Participants</TabsTrigger>
-            <TabsTrigger value="host-families">Host Families</TabsTrigger>
-            <TabsTrigger value="assignments">Assignments</TabsTrigger>
-            <TabsTrigger value="payments">Payments</TabsTrigger>
-          </TabsList>
-          <TabsContent value={activeTab} className="mt-0">
-            {renderContent()}
-          </TabsContent>
-        </Tabs>
-        <Outlet />
+        {location.pathname === "/" ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="participants">Participants</TabsTrigger>
+              <TabsTrigger value="host-families">Host Families</TabsTrigger>
+              <TabsTrigger value="assignments">Assignments</TabsTrigger>
+              <TabsTrigger value="payments">Payments</TabsTrigger>
+            </TabsList>
+            <TabsContent value={activeTab} className="mt-0">
+              {renderContent()}
+            </TabsContent>
+          </Tabs>
+        ) : (
+          renderContent()
+        )}
       </div>
     </div>
   );
