@@ -15,6 +15,7 @@ export default defineConfig({
   base: process.env.NODE_ENV === "development" ? "/" : process.env.VITE_BASE_PATH || "/",
   optimizeDeps: {
     entries: ["src/main.tsx", "src/tempobook/**/*"],
+    force: true
   },
   plugins: [
     react({
@@ -29,7 +30,10 @@ export default defineConfig({
     },
   },
   server: {
-    // @ts-ignore
-    allowedHosts: true,
+    port: 5173,
+    strictPort: false,
+    host: true,
+    open: true,
+    cors: true,
   }
 });
