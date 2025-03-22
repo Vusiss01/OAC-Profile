@@ -10,6 +10,7 @@ import {
   LogOut,
   HelpCircle,
   ChevronRight,
+  Calendar,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -109,7 +110,7 @@ const Sidebar = () => {
             />
             <SidebarLink
               to="/assignments"
-              icon={<Users size={20} strokeWidth={1.5} />}
+              icon={<Calendar size={20} strokeWidth={1.5} />}
               label="Assignments"
             />
             <SidebarLink

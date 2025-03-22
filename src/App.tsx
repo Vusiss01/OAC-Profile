@@ -4,7 +4,7 @@ import Home from "./components/home";
 import Notifications from "./components/utility/Notifications";
 import CalendarPage from "./components/utility/Calendar";
 import SettingsPage from "./components/utility/Settings";
-import AssignmentInterface from "./components/assignment/AssignmentInterface";
+import AssignmentInterface from "./components/assignments/AssignmentInterface";
 import routes from "tempo-routes";
 
 function App() {
