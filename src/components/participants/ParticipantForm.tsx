@@ -10,6 +10,7 @@ import {
   Calendar,
   MapPin,
   CreditCard,
+  Users,
 } from "lucide-react";
 
 import {
@@ -30,43 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Create a mock DocumentUpload component since the actual one is causing import issues
-const DocumentUpload = () => {
-  return (
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
-      <div className="text-center">
-        <h4 className="font-medium text-gray-700 mb-2">Upload Documents</h4>
-        <p className="text-sm text-gray-500 mb-4">
-          Drag and drop your ID documents or payment proof here, or click to
-          browse
-        </p>
-        <Button variant="outline" className="mb-2">
-          Browse Files
-        </Button>
-        <p className="text-xs text-gray-400">
-          Supported formats: PDF, JPG, PNG (Max size: 5MB)
-        </p>
-      </div>
-      <div className="mt-4 space-y-2">
-        <div className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
-          <div className="flex items-center">
-            <div className="w-10 h-10 bg-blue-100 rounded flex items-center justify-center text-blue-500 mr-3">
-              PDF
-            </div>
-            <div>
-              <p className="text-sm font-medium">passport.pdf</p>
-              <p className="text-xs text-gray-500">1.2 MB</p>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm">
-            Remove
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import DocumentUpload from "./DocumentUpload";
 
 const formSchema = z.object({
   firstName: z
@@ -75,6 +40,9 @@ const formSchema = z.object({
   lastName: z
     .string()
     .min(2, { message: "Last name must be at least 2 characters." }),
+  title: z.string({
+    required_error: "Please select a title",
+  }),
   email: z.string().email({ message: "Please enter a valid email address." }),
   phone: z.string().min(10, { message: "Please enter a valid phone number." }),
   dateOfBirth: z.string(),
@@ -90,6 +58,8 @@ const formSchema = z.object({
     .string()
     .min(2, { message: "Country must be at least 2 characters." }),
   paymentStatus: z.string(),
+  priestship: z.string().optional(),
+  eldership: z.string().optional(),
 });
 
 interface ParticipantFormProps {
@@ -101,6 +71,7 @@ const ParticipantForm = ({
   participant = {
     firstName: "",
     lastName: "",
+    title: "",
     email: "",
     phone: "",
     dateOfBirth: "",
@@ -110,6 +81,8 @@ const ParticipantForm = ({
     zipCode: "",
     country: "",
     paymentStatus: "pending",
+    priestship: "",
+    eldership: "",
   },
   onSubmit = (data) => console.log("Form submitted:", data),
 }: ParticipantFormProps) => {
@@ -120,6 +93,11 @@ const ParticipantForm = ({
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
     onSubmit(data);
+  };
+
+  const handleFileUpload = (files: File[]) => {
+    console.log("Files uploaded:", files);
+    // Here you would typically handle the file upload to your backend
   };
 
   return (
@@ -165,6 +143,36 @@ const ParticipantForm = ({
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select title" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Br.">Brother (Br.)</SelectItem>
+                        <SelectItem value="Sr.">Sister (Sr.)</SelectItem>
+                        <SelectItem value="Off.">Officer (Off.)</SelectItem>
+                        <SelectItem value="SrOff.">Sister Officer (SrOff.)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Select the appropriate title for the participant
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -299,6 +307,42 @@ const ParticipantForm = ({
               />
             </div>
 
+            {/* Congregations Section */}
+            <div className="space-y-4 col-span-2">
+              <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Congregations
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="priestship"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Priestship</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter priestship" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="eldership"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Eldership</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter eldership" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
             {/* Payment Status Section */}
             <div className="space-y-4 col-span-2">
               <h3 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
@@ -341,7 +385,7 @@ const ParticipantForm = ({
               <h3 className="text-lg font-semibold text-gray-700 mb-4">
                 Document Upload
               </h3>
-              <DocumentUpload />
+              <DocumentUpload onUpload={handleFileUpload} />
             </div>
           </div>
 
