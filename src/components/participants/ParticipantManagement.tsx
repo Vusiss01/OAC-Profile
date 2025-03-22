@@ -12,6 +12,24 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
   Search,
   Plus,
   Filter,
@@ -19,120 +37,74 @@ import {
   Edit,
   Trash2,
   Eye,
+  X,
 } from "lucide-react";
 import ParticipantForm from "./ParticipantForm";
+
+interface Documents {
+  id: boolean;
+  payment: boolean;
+  medical: boolean;
+  consent: boolean;
+}
 
 interface Participant {
   id: string;
   firstName: string;
   lastName: string;
+  title?: string;
   email: string;
   phone: string;
   dateOfBirth: string;
   paymentStatus: "pending" | "partial" | "complete" | "refunded";
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  priestship?: string;
+  eldership?: string;
   hostFamily?: string;
-  documents: {
-    id: boolean;
-    payment: boolean;
-    medical: boolean;
-    consent: boolean;
-  };
+  documents: Documents;
+}
+
+interface FilterOptions {
+  paymentStatus: Array<"pending" | "partial" | "complete" | "refunded">;
+  documentStatus: Array<"none" | "partial" | "complete">;
+  hostFamilyStatus: "all" | "assigned" | "unassigned";
+  searchTerm: string;
 }
 
 interface ParticipantManagementProps {
   participants?: Participant[];
-  onAddParticipant?: (participant: Omit<Participant, "id">) => void;
+  onAddParticipant?: (participant: Participant) => void;
   onEditParticipant?: (participant: Participant) => void;
   onDeleteParticipant?: (id: string) => void;
   onViewParticipant?: (id: string) => void;
 }
 
+const defaultParticipants: Participant[] = [
+  {
+    id: "1",
+    firstName: "John",
+    lastName: "Doe",
+    email: "john.doe@example.com",
+    phone: "(123) 456-7890",
+    dateOfBirth: "1990-01-15",
+    paymentStatus: "complete",
+    hostFamily: "Smith Family",
+    documents: {
+      id: true,
+      payment: true,
+      medical: true,
+      consent: true,
+    },
+  },
+];
+
 const ParticipantManagement = ({
-  participants = [
-    {
-      id: "1",
-      firstName: "John",
-      lastName: "Doe",
-      email: "john.doe@example.com",
-      phone: "(123) 456-7890",
-      dateOfBirth: "1990-01-15",
-      paymentStatus: "complete" as const,
-      hostFamily: "Smith Family",
-      documents: {
-        id: true,
-        payment: true,
-        medical: true,
-        consent: true,
-      },
-    },
-    {
-      id: "2",
-      firstName: "Jane",
-      lastName: "Smith",
-      email: "jane.smith@example.com",
-      phone: "(234) 567-8901",
-      dateOfBirth: "1992-05-20",
-      paymentStatus: "partial" as const,
-      hostFamily: "Johnson Family",
-      documents: {
-        id: true,
-        payment: true,
-        medical: false,
-        consent: false,
-      },
-    },
-    {
-      id: "3",
-      firstName: "Michael",
-      lastName: "Brown",
-      email: "michael.brown@example.com",
-      phone: "(345) 678-9012",
-      dateOfBirth: "1985-11-08",
-      paymentStatus: "pending" as const,
-      documents: {
-        id: true,
-        payment: false,
-        medical: false,
-        consent: true,
-      },
-    },
-    {
-      id: "4",
-      firstName: "Sarah",
-      lastName: "Johnson",
-      email: "sarah.johnson@example.com",
-      phone: "(456) 789-0123",
-      dateOfBirth: "1995-03-25",
-      paymentStatus: "refunded" as const,
-      hostFamily: "Williams Family",
-      documents: {
-        id: true,
-        payment: true,
-        medical: true,
-        consent: true,
-      },
-    },
-    {
-      id: "5",
-      firstName: "David",
-      lastName: "Wilson",
-      email: "david.wilson@example.com",
-      phone: "(567) 890-1234",
-      dateOfBirth: "1988-07-12",
-      paymentStatus: "complete" as const,
-      hostFamily: "Davis Family",
-      documents: {
-        id: true,
-        payment: true,
-        medical: true,
-        consent: false,
-      },
-    },
-  ],
-  onAddParticipant = (participant) =>
-    console.log("Add participant:", participant),
-  onEditParticipant = (participant) =>
-    console.log("Edit participant:", participant),
+  participants = defaultParticipants,
+  onAddParticipant = (participant) => console.log("Add participant:", participant),
+  onEditParticipant = (participant) => console.log("Edit participant:", participant),
   onDeleteParticipant = (id) => console.log("Delete participant:", id),
   onViewParticipant = (id) => console.log("View participant:", id),
 }: ParticipantManagementProps) => {
@@ -142,6 +114,13 @@ const ParticipantManagement = ({
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [currentParticipant, setCurrentParticipant] =
     useState<Participant | null>(null);
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    paymentStatus: [],
+    documentStatus: [],
+    hostFamilyStatus: "all",
+    searchTerm: "",
+  });
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
 
   // Filter participants based on search term and active tab
   const filteredParticipants = participants.filter((participant) => {
@@ -214,6 +193,121 @@ const ParticipantManagement = ({
     }
   };
 
+  const handleExport = () => {
+    const filteredData = participants.filter(applyFilters);
+    const csvContent = convertToCSV(filteredData);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", "participants.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePaymentStatusChange = (status: "pending" | "partial" | "complete" | "refunded", checked: boolean) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      paymentStatus: checked
+        ? [...prev.paymentStatus, status]
+        : prev.paymentStatus.filter((s) => s !== status),
+    }));
+  };
+
+  const handleDocumentStatusChange = (status: "none" | "partial" | "complete", checked: boolean) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      documentStatus: checked
+        ? [...prev.documentStatus, status]
+        : prev.documentStatus.filter((s) => s !== status),
+    }));
+  };
+
+  const handleHostFamilyStatusChange = (value: "all" | "assigned" | "unassigned") => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      hostFamilyStatus: value,
+    }));
+  };
+
+  const getDocumentStatus = (documents: Documents): "none" | "partial" | "complete" => {
+    const totalDocs = Object.values(documents).length;
+    const completedDocs = Object.values(documents).filter(Boolean).length;
+    if (completedDocs === 0) return "none";
+    if (completedDocs === totalDocs) return "complete";
+    return "partial";
+  };
+
+  const applyFilters = (participant: Participant): boolean => {
+    const searchMatch =
+      filterOptions.searchTerm === "" ||
+      participant.firstName.toLowerCase().includes(filterOptions.searchTerm.toLowerCase()) ||
+      participant.lastName.toLowerCase().includes(filterOptions.searchTerm.toLowerCase()) ||
+      participant.email.toLowerCase().includes(filterOptions.searchTerm.toLowerCase());
+
+    const paymentMatch =
+      filterOptions.paymentStatus.length === 0 ||
+      filterOptions.paymentStatus.includes(participant.paymentStatus);
+
+    const documentStatus = getDocumentStatus(participant.documents);
+    const documentMatch =
+      filterOptions.documentStatus.length === 0 ||
+      filterOptions.documentStatus.includes(documentStatus);
+
+    const hostFamilyMatch =
+      filterOptions.hostFamilyStatus === "all" ||
+      (filterOptions.hostFamilyStatus === "assigned" && participant.hostFamily) ||
+      (filterOptions.hostFamilyStatus === "unassigned" && !participant.hostFamily);
+
+    return searchMatch && paymentMatch && documentMatch && hostFamilyMatch;
+  };
+
+  const convertToCSV = (data: Participant[]): string => {
+    const headers = [
+      "First Name",
+      "Last Name",
+      "Title",
+      "Email",
+      "Phone",
+      "Date of Birth",
+      "Payment Status",
+      "Address",
+      "City",
+      "State",
+      "Zip Code",
+      "Priestship",
+      "Eldership",
+      "Host Family",
+      "Documents",
+    ].join(",");
+
+    const rows = data.map((participant) => {
+      const documentStatus = getDocumentStatus(participant.documents);
+      return [
+        participant.firstName,
+        participant.lastName,
+        participant.title || "",
+        participant.email,
+        participant.phone,
+        participant.dateOfBirth,
+        participant.paymentStatus,
+        participant.address || "",
+        participant.city || "",
+        participant.state || "",
+        participant.zipCode || "",
+        participant.priestship || "",
+        participant.eldership || "",
+        participant.hostFamily || "",
+        documentStatus,
+      ]
+        .map((value) => `"${value}"`)
+        .join(",");
+    });
+
+    return [headers, ...rows].join("\n");
+  };
+
   return (
     <div className="w-full bg-white p-6 rounded-lg shadow-sm">
       <div className="flex flex-col space-y-6">
@@ -261,11 +355,103 @@ const ParticipantManagement = ({
             />
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              Filter
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Sheet open={showFilterSheet} onOpenChange={setShowFilterSheet}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filter
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Filter Participants</SheetTitle>
+                  <SheetDescription>
+                    Set the filters to narrow down the participant list
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="py-6 space-y-6">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Payment Status</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      {(["pending", "partial", "complete", "refunded"] as const).map((status) => (
+                        <div key={status} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`payment-${status}`}
+                            checked={filterOptions.paymentStatus.includes(status)}
+                            onCheckedChange={(checked) => 
+                              handlePaymentStatusChange(status, checked === true)
+                            }
+                          />
+                          <Label htmlFor={`payment-${status}`}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Document Status</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      {(["none", "partial", "complete"] as const).map((status) => (
+                        <div key={status} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`docs-${status}`}
+                            checked={filterOptions.documentStatus.includes(status)}
+                            onCheckedChange={(checked) =>
+                              handleDocumentStatusChange(status, checked === true)
+                            }
+                          />
+                          <Label htmlFor={`docs-${status}`}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Host Family Status</h4>
+                    <Select
+                      value={filterOptions.hostFamilyStatus}
+                      onValueChange={handleHostFamilyStatusChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="assigned">Assigned</SelectItem>
+                        <SelectItem value="unassigned">Unassigned</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <SheetFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setFilterOptions({
+                        paymentStatus: [],
+                        documentStatus: [],
+                        hostFamilyStatus: "all",
+                        searchTerm: "",
+                      });
+                    }}
+                  >
+                    Reset Filters
+                  </Button>
+                  <Button onClick={() => setShowFilterSheet(false)}>
+                    Apply Filters
+                  </Button>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
+            <Button
+              variant="outline"
+              className="flex items-center gap-2"
+              onClick={handleExport}
+            >
               <Download className="h-4 w-4" />
               Export
             </Button>

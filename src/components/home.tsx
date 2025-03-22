@@ -3,13 +3,13 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import Sidebar from "./layout/Sidebar";
 import StatisticsCards from "./dashboard/StatisticsCards";
 import ParticipantManagement from "./participants/ParticipantManagement";
-import HostFamilyManagement from "./hostfamilies/HostFamilyManagement";
+import HostFamilyManagement from "./host-families/HostFamilyManagement";
 import AssignmentInterface from "./assignments/AssignmentInterface";
 import PaymentTracking from "./payments/PaymentTracking";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Bell, Calendar, Settings, Menu } from "lucide-react";
+import { Bell, Calendar, Settings, Menu, Users } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Home = () => {
