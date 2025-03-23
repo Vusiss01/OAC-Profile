@@ -104,9 +104,8 @@ const defaultHostFamilies: HostFamily[] = [
   },
 ];
 
-export const HostFamilyManagement = ({
-  hostFamilies = defaultHostFamilies,
-}: HostFamilyManagementProps) => {
+export const HostFamilyManagement = () => {
+  const [hostFamilies, setHostFamilies] = useState(defaultHostFamilies);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     verificationStatus: [],
     capacityStatus: [],

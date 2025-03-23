@@ -113,29 +113,29 @@ const DocumentUpload = ({
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
                   {getFileIcon(file.file.name)}
-                </div>
-                <div>
+                  </div>
+                          <div>
                   <p className="text-sm font-medium text-gray-900">
                     {file.file.name}
-                  </p>
-                  <p className="text-xs text-gray-500">
+                            </p>
+                            <p className="text-xs text-gray-500">
                     {formatFileSize(file.file.size)}
-                  </p>
-                </div>
-              </div>
-              <Button
+                            </p>
+                          </div>
+                        </div>
+                          <Button
                 type="button"
-                variant="ghost"
+                            variant="ghost"
                 size="sm"
                 onClick={() => removeFile(index)}
                 className="text-gray-500 hover:text-red-500"
               >
                 <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
+                          </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
     </div>
   );
 };
